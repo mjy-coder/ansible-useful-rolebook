@@ -1,0 +1,29 @@
+---
+# System Information Checks
+
+- name: "Check: Verify MAC Address is Unique"
+  ansible.builtin.command: "ip link"
+  register: mac_address_info
+  changed_when: false
+
+- name: "Print MAC Address Information"
+  ansible.builtin.debug:
+    msg: "MAC Address Information: {{ mac_address_info.stdout }}"
+
+- name: "Check: Verify product_uuid is Unique"
+  ansible.builtin.command: "cat /sys/class/dmi/id/product_uuid"
+  register: product_uuid
+  changed_when: false
+
+- name: "Print product_uuid"
+  ansible.builtin.debug:
+    msg: "product_uuid: {{ product_uuid.stdout }}"
+
+- name: "Check: Verify Hostname is Unique"
+  ansible.builtin.command: "hostname"
+  register: hostname_info
+  changed_when: false
+
+- name: "Print Hostname"
+  ansible.builtin.debug:
+    msg: "Hostname: {{ hostname_info.stdout }}"

@@ -1,0 +1,37 @@
+---
+# 安装系统常用工具
+
+# 更新yum缓存
+- name: 更新yum缓存
+  ansible.builtin.yum:
+    update_cache: true
+
+# 初始化安装失败的工具列表
+- name: 初始化安装失败的工具列表
+  ansible.builtin.set_fact:
+    failed_packages: []
+
+# 逐个安装系统工具
+- name: 逐个安装常用系统工具
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ rocky_sys_init_packages }}"
+  ignore_errors: true
+  register: package_install_result
+  failed_when: false
+
+# 收集安装失败的工具
+- name: 收集安装失败的工具
+  ansible.builtin.set_fact:
+    failed_packages: "{{ failed_packages + [item.item] }}"
+  loop: "{{ package_install_result.results }}"
+  when: item.failed
+
+# 显示安装失败的工具列表
+- name: 显示安装失败的工具列表
+  ansible.builtin.debug:
+    msg:
+    - "以下工具安装失败:"
+    - "{{ failed_packages | join(', ') if failed_packages | length > 0 else '所有工具都安装成功!' }}"
+  when: failed_packages | length > 0 or not(failed_packages | length > 0)

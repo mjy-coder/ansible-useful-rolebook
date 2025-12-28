@@ -1,0 +1,45 @@
+---
+- name: Create runc temporary directory
+  file:
+    path: "{{ runc_temp_dir }}"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Check if runc binary already exists
+  stat:
+    path: "{{ runc_install_path }}/runc"
+  register: runc_binary_stat
+  become: true
+
+- name: Download runc binary if not already exists
+  get_url:
+    url: "{{ runc_download_url }}"
+    dest: "{{ runc_temp_file }}"
+    mode: '0644'
+  when: not runc_binary_stat.stat.exists
+  become: true
+
+- name: Make runc binary executable
+  file:
+    path: "{{ runc_temp_file }}"
+    mode: '0755'
+  become: true
+
+- name: Move runc binary to installation path
+  copy:
+    src: "{{ runc_temp_file }}"
+    dest: "{{ runc_install_path }}/runc"
+    remote_src: yes
+    mode: '0755'
+  when: not runc_binary_stat.stat.exists
+  become: true
+
+- name: Verify runc is installed
+  shell: "{{ runc_install_path }}/runc --version"
+  register: runc_version
+  become: true
+
+- name: Display runc version
+  debug:
+    msg: "Runc version installed: {{ runc_version.stdout }}"

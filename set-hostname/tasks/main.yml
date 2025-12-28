@@ -1,0 +1,23 @@
+---
+- name: Set hostname (temporary and permanent)
+  ansible.builtin.hostname:
+    name: "{{ target_hostname }}" # 这里的建议搭配 host_vars 中的 hostname.yml 来使用
+  when: target_hostname is defined and target_hostname | length > 0
+
+- name: Ensure /etc/hostname is updated (for systemd-based systems)
+  ansible.builtin.lineinfile:
+    path: /etc/hostname
+    create: yes
+    mode: '0644'
+    line: "{{ target_hostname }}"
+  when: target_hostname is defined and target_hostname | length > 0
+
+- name: Update /etc/hosts to include hostname (optional but recommended)
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.0\.1\s+.*$'
+    line: "127.0.0.1 localhost {{ target_hostname }}"
+    backup: yes
+  when:
+  - target_hostname is defined
+  - update_etc_hosts | default(true)

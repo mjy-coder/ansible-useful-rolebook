@@ -1,0 +1,32 @@
+---
+# Kernel and System Configuration Checks
+
+- name: "Check 5: Verify Required Kernel Modules are Loaded"
+  ansible.builtin.command: "lsmod | grep {{ item }}"
+  register: module_check
+  loop: "{{ required_kernel_modules }}"
+  changed_when: false
+  ignore_errors: true
+
+- name: "Load Missing Kernel Modules"
+  ansible.builtin.modprobe:
+    name: "{{ item.item }}"
+    state: present
+  when: item.rc != 0
+  loop: "{{ module_check.results }}"
+
+- name: "Persist Kernel Modules Loading"
+  ansible.builtin.copy:
+    content: "{{ item }}\n"
+    dest: "/etc/modules-load.d/{{ item }}.conf"
+    mode: '0644'
+  loop: "{{ required_kernel_modules }}"
+
+- name: "Check 6: Verify Required Sysctl Settings"
+  ansible.builtin.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: "/etc/sysctl.d/k8s.conf"
+    reload: yes
+  loop: "{{ sysctl_settings | dict2items }}"

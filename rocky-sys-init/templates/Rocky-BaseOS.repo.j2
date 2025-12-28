@@ -1,0 +1,35 @@
+# Rocky-BaseOS.repo
+#
+# The mirror system uses the connecting IP address of the client and the
+# update status of each mirror to pick mirrors that are updated to and
+# geographically close to the client.
+#
+# To use this mirror, please comment out the default baseurl line above and
+# uncomment the baseurl line below.
+#
+# If the mirrorlist= does not work for you, you can try the
+# remarked out baseurl= line instead.
+#
+[BaseOS]
+name=Rocky Linux $releasever - BaseOS - aliyun
+#mirrorlist=http://mirrors.rockylinux.org/mirrorlist?arch=$basearch&repo=BaseOS-$releasever-$basearch
+baseurl=http://mirrors.aliyun.com/rockylinux/$releasever/BaseOS/$basearch/os/
+gpgcheck=1
+enabled=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-{{ ansible_distribution_major_version }}
+
+[BaseOS-debug]
+name=Rocky Linux $releasever - BaseOS - Debug - aliyun
+#mirrorlist=http://mirrors.rockylinux.org/mirrorlist?arch=$basearch&repo=BaseOS-$releasever-debug-$basearch
+baseurl=http://mirrors.aliyun.com/rockylinux/$releasever/BaseOS/$basearch/debug/
+gpgcheck=1
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-{{ ansible_distribution_major_version }}
+
+[BaseOS-source]
+name=Rocky Linux $releasever - BaseOS - Source - aliyun
+#mirrorlist=http://mirrors.rockylinux.org/mirrorlist?arch=$basearch&repo=BaseOS-$releasever-source-$basearch
+baseurl=http://mirrors.aliyun.com/rockylinux/$releasever/BaseOS/source/tree/
+gpgcheck=1
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-{{ ansible_distribution_major_version }}

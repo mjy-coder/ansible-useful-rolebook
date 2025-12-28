@@ -1,0 +1,20 @@
+---
+# Container Runtime and Dependencies Checks
+
+- name: "Check 7: Check Container Runtime Availability"
+  ansible.builtin.command: "which {{ item }}"
+  register: runtime_check
+  loop: "{{ container_runtime_checks }}"
+  changed_when: false
+  ignore_errors: true
+
+- name: "Print Container Runtime Status"
+  ansible.builtin.debug:
+    msg: "Container Runtime {{ item.item }}: {% if item.rc == 0 %}Installed{% else %}Not Installed{% endif %}"
+  loop: "{{ runtime_check.results }}"
+
+- name: "Check 13: Verify Required Packages are Installed"
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ required_packages }}"

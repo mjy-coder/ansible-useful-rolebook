@@ -1,0 +1,39 @@
+---
+# 备份默认repo文件
+- name: 备份默认BaseOS repo文件
+  ansible.builtin.copy:
+    src: /etc/yum.repos.d/Rocky-BaseOS.repo
+    dest: /etc/yum.repos.d/Rocky-BaseOS.repo.backup
+    remote_src: true
+    backup: false
+  ignore_errors: true
+
+- name: 备份默认AppStream repo文件
+  ansible.builtin.copy:
+    src: /etc/yum.repos.d/Rocky-AppStream.repo
+    dest: /etc/yum.repos.d/Rocky-AppStream.repo.backup
+    remote_src: true
+    backup: false
+  ignore_errors: true
+
+# 应用阿里云repo源
+- name: 应用阿里云BaseOS repo源
+  ansible.builtin.template:
+    src: Rocky-BaseOS.repo.j2
+    dest: /etc/yum.repos.d/Rocky-BaseOS.repo
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: 应用阿里云AppStream repo源
+  ansible.builtin.template:
+    src: Rocky-AppStream.repo.j2
+    dest: /etc/yum.repos.d/Rocky-AppStream.repo
+    owner: root
+    group: root
+    mode: '0644'
+
+# 更新yum缓存
+- name: 更新yum缓存
+  ansible.builtin.yum:
+    update_cache: true

@@ -1,0 +1,30 @@
+---
+galaxy_info:
+  author: your_name
+  description: Rocky Linux系统初始化Role
+  company: your_company
+
+  # 如果有多个类别，可以添加更多
+  galaxy_tags:
+  - rocky
+  - linux
+  - init
+  - setup
+  - repo
+
+  # 支持的平台
+  platforms:
+  - name: Rocky
+    versions:
+    - 8
+    - 9
+
+  # 许可证
+  license: MIT
+
+  # 仓库URL
+  min_ansible_version: "2.9"
+
+dependencies: []
+
+# 此Role没有依赖其他Role

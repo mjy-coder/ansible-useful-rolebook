@@ -1,0 +1,61 @@
+# Kubernetes Pre-Install Variables
+
+# Required OS packages for Kubernetes installation
+required_packages:
+- curl
+- wget
+- vim
+- git
+- net-tools
+- bind-utils
+- iptables
+- bridge-utils
+- bash-completion
+- chrony
+
+# Minimum CPU cores required
+min_cpu_cores: 2
+
+# Minimum memory required (in MB)
+min_memory_mb: 2048
+
+# Required kernel modules
+required_kernel_modules:
+- br_netfilter
+- overlay
+- nf_conntrack
+- ip_vs
+- ip_vs_rr
+- ip_vs_wrr
+- ip_vs_sh
+
+# Required sysctl settings
+sysctl_settings:
+  net.bridge.bridge-nf-call-iptables: 1
+  net.bridge.bridge-nf-call-ip6tables: 1
+  net.ipv4.ip_forward: 1
+
+# Container runtime requirements
+container_runtime_checks:
+- containerd
+
+# Ports that need to be open for Kubernetes
+required_ports:
+# Control Plane Ports
+- 6443/tcp # Kubernetes API Server
+- 2379-2380/tcp # etcd server client API
+- 10250/tcp # Kubelet API
+- 10251/tcp # kube-scheduler
+- 10252/tcp # kube-controller-manager
+- 10259/tcp # kube-scheduler (read-only port)
+- 10260/tcp # kube-controller-manager (read-only port)
+# Worker Node Ports
+- 10250/tcp # Kubelet API
+- 30000-32767/tcp # NodePort Services
+- 10256/tcp # kube-proxy healthz
+
+k8s_repo_gpg_key_redhat: "https://mirrors.aliyun.com/kubernetes-new/core/stable/v1.34/rpm/repodata/repomd.xml.key"
+# Kubernetes Repository URLs
+k8s_redhat_repo: "https://mirrors.aliyun.com/kubernetes-new/core/stable/v1.34/rpm/"
+k8s_redhat_repo_name: "kubernetes"
+k8s_redhat_repo_description: "Kubernetes Repository"

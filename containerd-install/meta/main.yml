@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  author: TraeAI
+  description: Install and configure containerd as container runtime
+  company: None
+  license: MIT
+  min_ansible_version: 2.10
+  platforms:
+  - name: EL
+    versions:
+    - 8
+    - 9
+  - name: Rocky
+    versions:
+    - 8
+    - 9
+  galaxy_tags:
+  - container
+  - containerd
+  - runtime
+  - kubernetes
+
+dependencies: []

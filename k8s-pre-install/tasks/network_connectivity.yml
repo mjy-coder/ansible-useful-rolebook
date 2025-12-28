@@ -1,0 +1,20 @@
+---
+# Network and Connectivity Checks
+
+- name: "Check 14: Verify IP Address Configuration"
+  ansible.builtin.command: "ip addr show"
+  register: ip_addresses
+  changed_when: false
+
+- name: "Print IP Address Configuration"
+  ansible.builtin.debug:
+    msg: "IP Address Configuration: {{ ip_addresses.stdout }}"
+
+- name: "Check 15: Verify Hostname Resolution"
+  ansible.builtin.command: "hostname -i"
+  register: hostname_resolution
+  changed_when: false
+
+- name: "Print Hostname Resolution"
+  ansible.builtin.debug:
+    msg: "Hostname Resolution: {{ hostname_resolution.stdout }}"

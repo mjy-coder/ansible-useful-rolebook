@@ -1,0 +1,23 @@
+---
+# Containerd version configuration
+containerd_version: "1.7.24"
+
+# Containerd download configuration
+containerd_download_url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version | default('1.7.24') }}/containerd-{{ containerd_version | default('1.7.24') }}-linux-amd64.tar.gz"
+containerd_temp_dir: /tmp/containerd-install
+containerd_temp_file: "{{ containerd_temp_dir }}/containerd.tar.gz"
+containerd_install_path: /usr/local/bin
+
+# Containerd configuration
+containerd_config_path: /etc/containerd/config.toml
+containerd_systemd_cgroup: true
+
+# Service configuration
+containerd_service_name: containerd
+
+# Runc configuration
+runc_version: "1.1.12"
+runc_download_url: "https://github.com/opencontainers/runc/releases/download/v{{ runc_version }}/runc.amd64"
+runc_temp_dir: /tmp/runc-install
+runc_temp_file: "{{ runc_temp_dir }}/runc.amd64"
+runc_install_path: /usr/local/bin

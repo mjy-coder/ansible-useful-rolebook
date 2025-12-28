@@ -1,0 +1,88 @@
+---
+# System Resources Checks
+
+- name: "Check 1: Verify Operating System Version"
+  ansible.builtin.command: "cat /etc/os-release"
+  register: os_release
+  changed_when: false
+
+- name: "Print OS Version"
+  ansible.builtin.debug:
+    msg: "Operating System: {{ os_release.stdout }}"
+
+- name: "Check 2: Verify CPU Cores Meet Minimum Requirement"
+  ansible.builtin.command: "nproc"
+  register: cpu_cores
+  changed_when: false
+
+- name: "Fail if CPU cores are insufficient"
+  ansible.builtin.fail:
+    msg: "Minimum {{ min_cpu_cores }} CPU cores required, found {{ cpu_cores.stdout }}"
+  when: cpu_cores.stdout|int < min_cpu_cores
+
+- name: "Check 3: Verify Memory Meets Minimum Requirement"
+  ansible.builtin.command: "free -m"
+  register: memory_info
+  changed_when: false
+
+- name: "Extract total memory"
+  ansible.builtin.set_fact:
+    total_memory: "{{ memory_info.stdout_lines[1].split()[1] }}"
+
+- name: "Fail if memory is insufficient"
+  ansible.builtin.fail:
+    msg: "Minimum {{ min_memory_mb }} MB memory required, found {{ total_memory }} MB"
+  when: total_memory|int < min_memory_mb
+
+- name: "Check 4: Verify Disk Space on Root Partition"
+  ansible.builtin.command: "df -h /"
+  register: disk_space
+  changed_when: false
+
+- name: "Print Root Partition Disk Space"
+  ansible.builtin.debug:
+    msg: "Root Partition Disk Space: {{ disk_space.stdout }}"
+
+- name: "Check 11: Verify Swap is Disabled"
+  ansible.builtin.command: "swapon --show"
+  register: swap_status
+  changed_when: false
+  ignore_errors: true
+
+- name: "Print Swap Status"
+  ansible.builtin.debug:
+    msg: "Swap is {% if swap_status.stdout != '' %}enabled{% else %}disabled{% endif %}"
+
+- name: "Temporarily disable swap if enabled"
+  ansible.builtin.command: "swapoff -a"
+  when: swap_status.stdout != ""
+  become: true
+
+- name: "Permanently disable swap in /etc/fstab"
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^([^#].*swap.*)$'
+    replace: '#\1'
+    backup: true
+  when: swap_status.stdout != ""
+  become: true
+
+- name: "Recheck swap status after disabling"
+  ansible.builtin.command: "swapon --show"
+  register: swap_status_after
+  changed_when: false
+  ignore_errors: true
+  become: true
+
+- name: "Print Updated Swap Status"
+  ansible.builtin.debug:
+    msg: "Swap is now {% if swap_status_after.stdout != '' %}enabled{% else %}disabled{% endif %}"
+
+- name: "Check 12: Verify Time Synchronization"
+  ansible.builtin.command: "timedatectl status"
+  register: time_status
+  changed_when: false
+
+- name: "Print Time Synchronization Status"
+  ansible.builtin.debug:
+    msg: "Time Synchronization: {{ time_status.stdout }}"

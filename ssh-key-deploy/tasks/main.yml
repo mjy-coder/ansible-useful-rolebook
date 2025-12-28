@@ -1,0 +1,13 @@
+# roles/ssh-key-deploy/tasks/main.yml
+---
+- name: Ensure target user exists (optional but safe)
+  ansible.builtin.user:
+    name: "{{ ssh_key_user }}"
+    state: present
+  when: ssh_key_manage_user | default(true)
+
+- name: Deploy SSH public key for {{ ssh_key_user }}
+  ansible.posix.authorized_key:
+    user: "{{ ssh_key_user }}"
+    key: "{{ ssh_key_content | default(lookup('file', ssh_key_file | default('~/.ssh/id_rsa.pub'))) }}"
+    state: present

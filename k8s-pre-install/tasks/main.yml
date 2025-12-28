@@ -1,0 +1,39 @@
+---
+# Kubernetes Pre-Installation Checks
+
+# System Information Checks (Required for Node Uniqueness)
+- name: Include System Information Checks
+  ansible.builtin.include_tasks: system_info.yml
+
+# System Resources Checks
+- name: Include System Resources Checks
+  ansible.builtin.include_tasks: system_resources.yml
+
+# Kernel and System Configuration Checks
+- name: Include Kernel and System Configuration Checks
+  ansible.builtin.include_tasks: kernel_config.yml
+
+# Security and Firewall Checks
+- name: Include Security and Firewall Checks
+  ansible.builtin.include_tasks: security_firewall.yml
+
+# Container Runtime and Dependencies Checks
+- name: Include Container Runtime and Dependencies Checks
+  ansible.builtin.include_tasks: container_runtime.yml
+
+# Network and Connectivity Checks
+- name: Include Network and Connectivity Checks
+  ansible.builtin.include_tasks: network_connectivity.yml
+
+# Port Checks
+- name: Include Port Checks
+  ansible.builtin.include_tasks: port_checks.yml
+
+# Completion Message
+- name: "Kubernetes Pre-Installation Checks Completed Successfully"
+  ansible.builtin.debug:
+    msg: "All Kubernetes pre-installation checks passed!"
+
+# Kubernetes Repository Configuration
+- name: Include Kubernetes Repository Configuration
+  ansible.builtin.include_tasks: repo_config.yml

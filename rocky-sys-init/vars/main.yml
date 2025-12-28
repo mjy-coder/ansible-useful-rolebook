@@ -1,0 +1,24 @@
+---
+# 系统初始化常用工具列表
+rocky_sys_init_packages:
+- vim
+- git
+- curl
+- wget
+- net-tools
+- bind-utils
+- telnet
+- unzip
+- zip
+- tar
+- gzip
+- bzip2
+- rsync
+- lsof
+- strace
+- tcpdump
+- gcc
+- gcc-c++
+- make
+- cmake
+- epel-release

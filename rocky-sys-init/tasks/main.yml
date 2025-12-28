@@ -1,0 +1,8 @@
+---
+# 系统初始化主任务文件
+
+# 安装常用系统工具
+- import_tasks: install_tools.yml
+
+# 配置阿里云repo源
+- import_tasks: configure_repo.yml

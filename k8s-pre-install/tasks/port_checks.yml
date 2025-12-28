@@ -1,0 +1,41 @@
+---
+# Port Checks
+
+- name: "Install nc if not present"
+  ansible.builtin.package:
+    name: "nc"
+    state: present
+  ignore_errors: true
+
+- name: "Check: Verify Control Plane Ports"
+  ansible.builtin.command: "nc -zv -w 2 127.0.0.1 {{ item }}"
+  register: control_plane_ports
+  loop:
+    - "6443"    # Kubernetes API Server
+    - "2379"    # etcd server client API (etcd-0)
+    - "2380"    # etcd server peer API
+    - "10250"   # Kubelet API
+    - "10251"   # kube-scheduler
+    - "10252"   # kube-controller-manager
+  changed_when: false
+  ignore_errors: true
+
+- name: "Print Control Plane Ports Status"
+  ansible.builtin.debug:
+    msg: "Port {{ item.item }}: {% if item.rc == 0 %}Open{% else %}Closed{% endif %}"
+  loop: "{{ control_plane_ports.results }}"
+
+- name: "Check: Verify Worker Node Ports"
+  ansible.builtin.command: "nc -zv -w 2 127.0.0.1 {{ item }}"
+  register: worker_node_ports
+  loop:
+    - "10250"   # Kubelet API
+    - "30000"   # NodePort Services (sample port)
+    - "10256"   # kube-proxy healthz
+  changed_when: false
+  ignore_errors: true
+
+- name: "Print Worker Node Ports Status"
+  ansible.builtin.debug:
+    msg: "Port {{ item.item }}: {% if item.rc == 0 %}Open{% else %}Closed{% endif %}"
+  loop: "{{ worker_node_ports.results }}"

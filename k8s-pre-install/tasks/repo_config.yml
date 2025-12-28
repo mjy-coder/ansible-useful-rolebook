@@ -1,0 +1,17 @@
+---
+# Kubernetes Repository Configuration for RedHat Systems
+
+# Add Kubernetes repository
+- name: Add Kubernetes YUM repository (RedHat)
+  ansible.builtin.yum_repository:
+    name: "{{ k8s_redhat_repo_name }}"
+    description: "{{ k8s_redhat_repo_description }}"
+    baseurl: "{{ k8s_redhat_repo }}"
+    gpgcheck: yes
+    enabled: yes
+    gpgkey: "{{ k8s_repo_gpg_key_redhat }}"
+
+# Update package cache
+- name: Update YUM cache (RedHat)
+  ansible.builtin.yum:
+    update_cache: yes
