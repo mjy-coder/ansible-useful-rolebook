@@ -1,4 +1,10 @@
 ---
+- name: Check if containerd is already installed
+  stat:
+    path: "{{ containerd_install_path }}/containerd"
+  register: containerd_installed_stat
+  become: true
+
 - name: Install required dependencies (RHEL/CentOS/Rocky)
   yum:
     name:
@@ -8,6 +14,7 @@
     - systemd
     state: present
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Create containerd temporary directory
   file:
@@ -15,19 +22,21 @@
     state: directory
     mode: '0755'
   become: true
+  when: not containerd_installed_stat.stat.exists
 
-- name: Check if containerd binary already exists
+- name: Check if containerd binary already downloaded
   stat:
     path: "{{ containerd_temp_file }}"
   register: containerd_binary_stat
   become: true
+  when: not containerd_installed_stat.stat.exists
 
-- name: Download containerd binary if not already exists
+- name: Download containerd binary if not already downloaded
   get_url:
     url: "{{ containerd_download_url }}"
     dest: "{{ containerd_temp_file }}"
     mode: '0644'
-  when: not containerd_binary_stat.stat.exists
+  when: not containerd_installed_stat.stat.exists and not containerd_binary_stat.stat.exists
   become: true
 
 - name: Extract containerd binary
@@ -37,6 +46,7 @@
     remote_src: yes
     extra_opts: [ "--strip-components=1" ]
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Create containerd systemd service directory
   file:
@@ -44,6 +54,7 @@
     state: directory
     mode: '0755'
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Add containerd systemd service file
   copy:
@@ -159,7 +170,6 @@
   systemd:
     name: containerd
     state: stopped
-  when: containerd_service_status is succeeded
   become: true
 
 - name: Start and enable containerd service with new configurations
