@@ -5,7 +5,7 @@ containerd_version: "1.7.24"
 # Containerd download configuration
 containerd_download_url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version | default('1.7.24') }}/containerd-{{ containerd_version | default('1.7.24') }}-linux-amd64.tar.gz"
 containerd_temp_dir: /tmp/containerd-install
-containerd_temp_file: "{{ containerd_temp_dir }}/containerd.tar.gz"
+containerd_temp_file: "{{ containerd_temp_dir }}/containerd-{{ containerd_version | default('1.7.24') }}-linux-amd64.tar.gz"
 containerd_install_path: /usr/local/bin
 
 # Containerd configuration
