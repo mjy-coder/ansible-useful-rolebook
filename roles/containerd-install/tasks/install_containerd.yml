@@ -124,6 +124,22 @@
     backrefs: yes
   become: true
 
+- name: Configure containerd registry with certs.d
+  ansible.builtin.blockinfile:
+    path: /etc/containerd/config.toml
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: containerd registry config"
+    block: |
+      config_path = "/etc/containerd/certs.d"
+      [plugins."io.containerd.grpc.v1.cri".registry.auths]
+
+      [plugins."io.containerd.grpc.v1.cri".registry.configs]
+
+      [plugins."io.containerd.grpc.v1.cri".registry.headers]
+
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+
+    insertafter: '^\[plugins\."io\.containerd\.grpc\.v1\.cri"\.registry\]$'
+
 - name: Create docker.io mirror directory
   file:
     path: /etc/containerd/certs.d/docker.io
@@ -134,9 +150,8 @@
 - name: Configure docker.io mirror sources
   copy:
     content: |
-      server = "https://registry-1.docker.io"
       [host."https://docker.m.daocloud.io"]
-        capabilities = ["pull", "resolve", "push"]
+        capabilities = ["pull", "resolve"]
     dest: /etc/containerd/certs.d/docker.io/hosts.toml
     mode: '0644'
   become: true
@@ -151,7 +166,6 @@
 - name: Configure registry.k8s.io mirror sources
   copy:
     content: |
-      server = "https://registry.k8s.io"
       [host."https://k8s.m.daocloud.io"]
         capabilities = ["pull", "resolve", "push"]
     dest: /etc/containerd/certs.d/registry.k8s.io/hosts.toml
