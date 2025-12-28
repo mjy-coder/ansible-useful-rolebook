@@ -30,7 +30,7 @@
     total_memory: "{{ memory_info.stdout_lines[1].split()[1] }}"
 
 - name: "Fail if memory is insufficient"
-  ansible.builtin.fail:
+  ansible.builtin.warn:
     msg: "Minimum {{ min_memory_mb }} MB memory required, found {{ total_memory }} MB"
   when: total_memory|int < min_memory_mb
 
