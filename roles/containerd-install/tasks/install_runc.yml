@@ -5,41 +5,35 @@
   register: runc_binary_stat
   become: true
 
-- name: Check if runc binary already downloaded in tmp directory
+- name: Check if runc binary already downloaded locally
   stat:
     path: "{{ runc_temp_file }}"
   register: runc_downloaded_stat
-  become: true
+  delegate_to: localhost
+  run_once: true
   when: not runc_binary_stat.stat.exists
 
-- name: Create runc temporary directory
-  file:
-    path: "{{ runc_temp_dir }}"
-    state: directory
-    mode: '0755'
-  become: true
-  when: not runc_binary_stat.stat.exists
-
-- name: Download runc binary if not already downloaded
+- name: Download runc binary locally if not already downloaded
   get_url:
     url: "{{ runc_download_url }}"
     dest: "{{ runc_temp_file }}"
     mode: '0644'
-  when: not runc_binary_stat.stat.exists and not runc_downloaded_stat.stat.exists
-  become: true
+  when: runc_downloaded_stat.stat.exists
+  delegate_to: localhost
+  run_once: true
 
 - name: Make runc binary executable
   file:
     path: "{{ runc_temp_file }}"
     mode: '0755'
-  become: true
+  delegate_to: localhost
+  run_once: true
   when: not runc_binary_stat.stat.exists
 
-- name: Move runc binary to installation path
+- name: Copy runc binary to remote host
   copy:
     src: "{{ runc_temp_file }}"
     dest: "{{ runc_install_path }}/runc"
-    remote_src: yes
     mode: '0755'
   become: true
   when: not runc_binary_stat.stat.exists

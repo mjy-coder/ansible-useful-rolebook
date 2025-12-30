@@ -5,6 +5,14 @@
   register: containerd_installed_stat
   become: true
 
+- name: Check if containerd binary already downloaded locally
+  stat:
+    path: "{{ containerd_temp_file }}"
+  register: containerd_binary_stat
+  delegate_to: localhost
+  run_once: true
+  when: not containerd_installed_stat.stat.exists
+
 - name: Install required dependencies (RHEL/CentOS/Rocky)
   yum:
     name:
@@ -14,32 +22,41 @@
     - systemd
     state: present
   become: true
+  when: not containerd_binary_stat.stat.exists
+
+- name: Download containerd binary locally if not already downloaded
+  get_url:
+    url: "{{ containerd_download_url }}"
+    dest: "{{ containerd_temp_file }}"
+    mode: '0644'
+  when: not containerd_binary_stat.stat.exists
+  delegate_to: localhost
+  run_once: true
+
+- name: Check if containerd binary already copyed
+  stat:
+    path: "{{ containerd_temp_file }}"
+  register: containerd_copy_stat
+  run_once: true
   when: not containerd_installed_stat.stat.exists
 
-- name: Create containerd temporary directory
+- name: Create containerd temporary directory on remote host
   file:
     path: "{{ containerd_temp_dir }}"
     state: directory
     mode: '0755'
   become: true
-  when: not containerd_installed_stat.stat.exists
+  when: not containerd_copy_stat.stat.exists
 
-- name: Check if containerd binary already downloaded
-  stat:
-    path: "{{ containerd_temp_file }}"
-  register: containerd_binary_stat
-  become: true
-  when: not containerd_installed_stat.stat.exists
-
-- name: Download containerd binary if not already downloaded
-  get_url:
-    url: "{{ containerd_download_url }}"
+- name: Copy containerd binary to remote host
+  copy:
+    src: "{{ containerd_temp_file }}"
     dest: "{{ containerd_temp_file }}"
     mode: '0644'
-  when: not containerd_installed_stat.stat.exists and not containerd_binary_stat.stat.exists
   become: true
+  when: not containerd_copy_stat.stat.exists
 
-- name: Extract containerd binary
+- name: Extract containerd binary on remote host
   unarchive:
     src: "{{ containerd_temp_file }}"
     dest: "{{ containerd_install_path }}"
@@ -88,7 +105,7 @@
       Restart=always
       RestartSec=5
       # Having non-zero Limit*s causes performance problems due to accounting overhead
-      # in the kernel. We recommend using cgroups to do container-local accounting.
+      # in the kernel, We recommend using cgroups to do container-local accounting.
       LimitNPROC=infinity
       LimitCORE=infinity
       LimitNOFILE=infinity
@@ -102,6 +119,7 @@
     dest: /etc/systemd/system/containerd.service
     mode: '0644'
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Create containerd configuration directory
   file:
@@ -109,12 +127,14 @@
     state: directory
     mode: '0755'
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Generate containerd default configuration
   shell: /usr/local/bin/containerd config default > /etc/containerd/config.toml
   args:
     creates: /etc/containerd/config.toml
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Configure containerd to use systemd cgroup driver
   lineinfile:
@@ -123,20 +143,7 @@
     line: '            SystemdCgroup = true'
     backrefs: yes
   become: true
-
-- name: Remove existing config_path line in registry section
-  lineinfile:
-    path: /etc/containerd/config.toml
-    regexp: '^\s*config_path\s*='
-    state: absent
-  become: true
-
-- name: Add config_path under registry section
-  lineinfile:
-    path: /etc/containerd/config.toml
-    insertafter: '^\s*\[plugins\."io\.containerd\.grpc\.v1\.cri"\.registry\]'
-    line: '     config_path = "/etc/containerd/certs.d"'
-  become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Create docker.io mirror directory
   file:
@@ -144,15 +151,18 @@
     state: directory
     mode: '0755'
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Configure docker.io mirror sources
   copy:
     content: |
+      server = "https://registry-1.docker.io"
       [host."https://docker.m.daocloud.io"]
-        capabilities = ["pull", "resolve"]
+        capabilities = ["pull", "resolve", "push"]
     dest: /etc/containerd/certs.d/docker.io/hosts.toml
     mode: '0644'
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Create registry.k8s.io mirror directory
   file:
@@ -160,15 +170,18 @@
     state: directory
     mode: '0755'
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Configure registry.k8s.io mirror sources
   copy:
     content: |
+      server = "https://registry.k8s.io"
       [host."https://k8s.m.daocloud.io"]
         capabilities = ["pull", "resolve", "push"]
     dest: /etc/containerd/certs.d/registry.k8s.io/hosts.toml
     mode: '0644'
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Check if containerd service is running
   systemd:
@@ -177,11 +190,13 @@
   register: containerd_service_status
   ignore_errors: true
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Stop containerd service if it's running
   systemd:
     name: containerd
     state: stopped
+  when: not containerd_installed_stat.stat.exists and containerd_service_status is succeeded
   become: true
 
 - name: Start and enable containerd service with new configurations
@@ -191,12 +206,15 @@
     enabled: yes
     daemon_reload: yes
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Verify containerd is running
   shell: "{{ containerd_install_path }}/containerd --version"
   register: containerd_version
   become: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Display containerd version
   debug:
     msg: "Containerd version installed: {{ containerd_version.stdout }}"
+  when: not containerd_installed_stat.stat.exists
