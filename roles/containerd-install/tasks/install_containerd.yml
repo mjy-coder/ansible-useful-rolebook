@@ -5,14 +5,6 @@
   register: containerd_installed_stat
   become: true
 
-- name: Check if containerd binary already downloaded locally
-  stat:
-    path: "{{ containerd_temp_file }}"
-  register: containerd_binary_stat
-  delegate_to: localhost
-  run_once: true
-  when: not containerd_installed_stat.stat.exists
-
 - name: Install required dependencies (RHEL/CentOS/Rocky)
   yum:
     name:
@@ -22,7 +14,15 @@
     - systemd
     state: present
   become: true
-  when: not containerd_binary_stat.stat.exists
+  when: not containerd_installed_stat.stat.exists
+
+- name: Check if containerd binary already downloaded locally
+  stat:
+    path: "{{ containerd_temp_file }}"
+  register: containerd_download_stat
+  delegate_to: localhost
+  run_once: true
+  when: not containerd_installed_stat.stat.exists
 
 - name: Create containerd temporary directory on local host
   file:
@@ -31,14 +31,14 @@
     mode: '0755'
   delegate_to: localhost
   run_once: true
-  when: not containerd_binary_stat.stat.exists
+  when: not containerd_installed_stat.stat.exists and not containerd_download_stat.stat.exists
 
 - name: Download containerd binary locally if not already downloaded
   get_url:
     url: "{{ containerd_download_url }}"
     dest: "{{ containerd_temp_file }}"
     mode: '0644'
-  when: not containerd_binary_stat.stat.exists
+  when: not containerd_installed_stat.stat.exists and not containerd_download_stat.stat.exists
   delegate_to: localhost
   run_once: true
 
@@ -55,7 +55,7 @@
     state: directory
     mode: '0755'
   become: true
-  when: not containerd_copy_stat.stat.exists
+  when: not containerd_installed_stat.stat.exists and not containerd_copy_stat.stat.exists
 
 - name: Copy containerd binary to remote host
   copy:
@@ -63,7 +63,7 @@
     dest: "{{ containerd_temp_file }}"
     mode: '0644'
   become: true
-  when: not containerd_copy_stat.stat.exists
+  when: not containerd_installed_stat.stat.exists and not containerd_copy_stat.stat.exists
 
 - name: Extract containerd binary on remote host
   unarchive:
