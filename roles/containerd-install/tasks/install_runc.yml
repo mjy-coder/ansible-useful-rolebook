@@ -18,7 +18,7 @@
     url: "{{ runc_download_url }}"
     dest: "{{ runc_temp_file }}"
     mode: '0644'
-  when: runc_downloaded_stat.stat.exists
+  when: not runc_downloaded_stat.stat.exists
   delegate_to: localhost
   run_once: true
 
