@@ -20,24 +20,20 @@
     mode: '0755'
   delegate_to: localhost
   run_once: true
-  when: not runc_downloaded_stat.stat.exists
+  when: not runc_binary_stat.stat.exists and not runc_downloaded_stat.stat.exists
 
 - name: Download runc binary locally if not already downloaded
   get_url:
     url: "{{ runc_download_url }}"
     dest: "{{ runc_temp_file }}"
     mode: '0644'
-  when: not runc_downloaded_stat.stat.exists
+  when: not runc_binary_stat.stat.exists and not runc_downloaded_stat.stat.exists
   delegate_to: localhost
   run_once: true
+  notify: Make runc binary executable
 
-- name: Make runc binary executable
-  file:
-    path: "{{ runc_temp_file }}"
-    mode: '0755'
-  delegate_to: localhost
-  run_once: true
-  when: not runc_binary_stat.stat.exists
+- name: Flush handlers immediately
+  meta: flush_handlers
 
 - name: Copy runc binary to remote host
   copy:
