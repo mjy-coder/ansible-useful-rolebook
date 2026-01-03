@@ -24,6 +24,15 @@
   become: true
   when: not containerd_binary_stat.stat.exists
 
+- name: Create containerd temporary directory on local host
+  file:
+    path: "{{ containerd_temp_dir }}"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+  run_once: true
+  when: not containerd_binary_stat.stat.exists
+
 - name: Download containerd binary locally if not already downloaded
   get_url:
     url: "{{ containerd_download_url }}"
