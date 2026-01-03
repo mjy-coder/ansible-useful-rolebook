@@ -13,6 +13,15 @@
   run_once: true
   when: not runc_binary_stat.stat.exists
 
+- name: Make runc temp directory
+  file:
+    path: "{{ runc_temp_dir }}"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+  run_once: true
+  when: not runc_downloaded_stat.stat.exists
+
 - name: Download runc binary locally if not already downloaded
   get_url:
     url: "{{ runc_download_url }}"
