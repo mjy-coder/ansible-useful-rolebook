@@ -1,0 +1,63 @@
+---
+# 时间同步配置
+
+# 检查并安装 chrony
+- name: 检查 chrony 是否已安装
+  ansible.builtin.command:
+    cmd: rpm -q chrony
+  register: chrony_check
+  ignore_errors: true
+  changed_when: false
+
+- name: 安装 chrony 时间同步服务
+  ansible.builtin.yum:
+    name: chrony
+    state: present
+  become: true
+  when: chrony_check.rc != 0
+
+- name: 设置时区为 Asia/Shanghai
+  ansible.builtin.command:
+    cmd: timedatectl set-timezone Asia/Shanghai
+  become: true
+  ignore_errors: true
+
+- name: 配置阿里云 NTP 服务器
+  ansible.builtin.blockinfile:
+    path: /etc/chrony.conf
+    block: |
+      server ntp.aliyun.com iburst
+      server ntp1.aliyun.com iburst
+      server ntp2.aliyun.com iburst
+    insertafter: '^# Please consider'
+    marker: "# {mark} ANSIBLE MANAGED - ALIYUN NTP"
+  become: true
+
+- name: 启用并启动 chronyd 服务
+  ansible.builtin.service:
+    name: chronyd
+    state: started
+    enabled: true
+  become: true
+
+- name: 重启 chrony 服务使配置生效
+  ansible.builtin.service:
+    name: chronyd
+    state: restarted
+  become: true
+
+- name: 强制立即同步时间
+  ansible.builtin.command:
+    cmd: chronyc makestep
+  become: true
+  ignore_errors: true
+
+- name: 获取时间同步状态
+  ansible.builtin.command:
+    cmd: timedatectl status
+  register: time_status
+  changed_when: false
+
+- name: 显示当前时间状态
+  ansible.builtin.debug:
+    msg: "{{ time_status.stdout_lines }}"

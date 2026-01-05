@@ -22,3 +22,11 @@ rocky_sys_init_packages:
 - make
 - cmake
 - epel-release
+- chrony
+
+# 时间同步配置
+time_zone: "Asia/Shanghai"
+ntp_servers:
+  - "ntp.aliyun.com"
+  - "ntp1.aliyun.com"
+  - "ntp2.aliyun.com"
