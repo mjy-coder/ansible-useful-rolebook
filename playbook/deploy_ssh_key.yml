@@ -7,3 +7,9 @@
     ssh_key_user: root
     ssh_key_file: "~/.ssh/id_rsa.pub"
     ssh_key_manage_user: true
+
+- name: Set hostname
+  hosts: "{{ ssh_target_hosts | default('all') }}"
+  become: yes
+  roles:
+  - role: set-hostname
