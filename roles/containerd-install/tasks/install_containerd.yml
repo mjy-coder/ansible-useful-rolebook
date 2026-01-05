@@ -145,14 +145,32 @@
   become: true
   when: not containerd_installed_stat.stat.exists
 
+# - name: Configure containerd to use systemd cgroup driver
+#   lineinfile:
+#     path: /etc/containerd/config.toml
+#     regexp: '^\s*SystemdCgroup\s*='
+#     line: '            SystemdCgroup = true'
+#     backrefs: yes
+#   become: true
+#   when: not containerd_installed_stat.stat.exists
+
 - name: Configure containerd to use systemd cgroup driver
-  lineinfile:
+  ini_file:
     path: /etc/containerd/config.toml
-    regexp: '^\s*SystemdCgroup\s*='
-    line: '            SystemdCgroup = true'
-    backrefs: yes
-  become: true
-  when: not containerd_installed_stat.stat.exists
+    section: 'plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options'
+    option: SystemdCgroup
+    value: 'true'
+    backup: yes
+  notify: restart containerd
+
+- name: Set containerd registry config_path
+  ini_file:
+    path: /etc/containerd/config.toml
+    section: 'plugins."io.containerd.grpc.v1.cri".registry'
+    option: config_path
+    value: '/etc/containerd/certs.d'
+    backup: yes
+  notify: restart containerd
 
 - name: Create docker.io mirror directory
   file:
