@@ -1,0 +1,8 @@
+version = 2
+
+[plugins]
+  [plugins."io.containerd.grpc.v1.cri"]
+    systemd_cgroup = true
+
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      config_path = "/etc/containerd/certs.d"
