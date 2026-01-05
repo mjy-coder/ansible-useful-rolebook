@@ -1,0 +1,9 @@
+---
+- name: Deploy SSH public keys to target hosts
+  hosts: "{{ ssh_target_hosts | default('all') }}"
+  become: yes
+  roles:
+  - role: ssh-key-deploy
+    ssh_key_user: root
+    ssh_key_file: "~/.ssh/id_rsa.pub"
+    ssh_key_manage_user: true
