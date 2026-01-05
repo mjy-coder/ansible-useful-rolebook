@@ -161,7 +161,7 @@
     option: SystemdCgroup
     value: 'true'
     backup: yes
-  notify: restart containerd
+  when: not containerd_installed_stat.stat.exists
 
 - name: Set containerd registry config_path
   ini_file:
@@ -170,7 +170,7 @@
     option: config_path
     value: '/etc/containerd/certs.d'
     backup: yes
-  notify: restart containerd
+  when: not containerd_installed_stat.stat.exists
 
 - name: Create docker.io mirror directory
   file:
