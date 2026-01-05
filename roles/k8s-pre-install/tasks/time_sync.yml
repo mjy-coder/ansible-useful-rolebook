@@ -1,0 +1,76 @@
+---
+# Time Synchronization Configuration for Kubernetes
+
+- name: Check if chrony is installed
+  ansible.builtin.command:
+    cmd: rpm -q chrony
+  register: chrony_installed
+  ignore_errors: true
+  changed_when: false
+
+- name: Install chrony
+  ansible.builtin.yum:
+    name: chrony
+    state: present
+  become: true
+  when: chrony_installed.rc != 0
+
+- name: Ensure chrony service is enabled and started
+  ansible.builtin.service:
+    name: chronyd
+    state: started
+    enabled: true
+  become: true
+
+- name: Set timezone to Asia/Shanghai
+  ansible.builtin.command:
+    cmd: timedatectl set-timezone Asia/Shanghai
+  become: true
+  ignore_errors: true
+
+- name: Configure NTP servers for chrony
+  ansible.builtin.lineinfile:
+    path: /etc/chrony.conf
+    regexp: '^server '
+    line: "server {{ item }} iburst"
+    insertafter: '^# Please consider'
+  loop:
+    - "0.pool.ntp.org"
+    - "1.pool.ntp.org"
+    - "2.pool.ntp.org"
+    - "3.pool.ntp.org"
+  become: true
+  when: false
+
+- name: Ensure chrony uses Aliyun NTP servers
+  ansible.builtin.blockinfile:
+    path: /etc/chrony.conf
+    block: |
+      server ntp.aliyun.com iburst
+      server ntp1.aliyun.com iburst
+      server ntp2.aliyun.com iburst
+    insertafter: '^# Please consider'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - ALIYUN NTP"
+  become: true
+
+- name: Restart chrony service to apply configuration
+  ansible.builtin.service:
+    name: chronyd
+    state: restarted
+  become: true
+
+- name: Wait for time synchronization
+  ansible.builtin.command:
+    cmd: chronyc makestep
+  become: true
+  ignore_errors: true
+
+- name: Display time synchronization status
+  ansible.builtin.command:
+    cmd: timedatectl status
+  register: time_status
+  changed_when: false
+
+- name: Show current time status
+  ansible.builtin.debug:
+    msg: "{{ time_status.stdout }}"

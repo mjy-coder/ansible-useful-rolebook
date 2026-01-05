@@ -9,6 +9,10 @@
 - name: Include System Resources Checks
   ansible.builtin.include_tasks: system_resources.yml
 
+# Time Synchronization Checks
+- name: Include Time Synchronization Configuration
+  ansible.builtin.include_tasks: time_sync.yml
+
 # Kernel and System Configuration Checks
 - name: Include Kernel and System Configuration Checks
   ansible.builtin.include_tasks: kernel_config.yml
