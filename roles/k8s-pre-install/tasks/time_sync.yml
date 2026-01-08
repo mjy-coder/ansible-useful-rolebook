@@ -23,32 +23,16 @@
   become: true
 
 - name: Set timezone to Asia/Shanghai
-  ansible.builtin.command:
-    cmd: timedatectl set-timezone Asia/Shanghai
-  become: true
-  ignore_errors: true
-
-- name: Configure NTP servers for chrony
-  ansible.builtin.lineinfile:
-    path: /etc/chrony.conf
-    regexp: '^server '
-    line: "server {{ item }} iburst"
-    insertafter: '^# Please consider'
-  loop:
-    - "0.pool.ntp.org"
-    - "1.pool.ntp.org"
-    - "2.pool.ntp.org"
-    - "3.pool.ntp.org"
-  become: true
-  when: false
+  ansible.posix.timezone:
+    name: Asia/Shanghai
 
 - name: Ensure chrony uses Aliyun NTP servers
   ansible.builtin.blockinfile:
     path: /etc/chrony.conf
     block: |
-      server ntp.aliyun.com iburst
-      server ntp1.aliyun.com iburst
-      server ntp2.aliyun.com iburst
+      {% for server in ntp_servers %}
+      server {{ server }} iburst
+      {% endfor %}
     insertafter: '^# Please consider'
     marker: "# {mark} ANSIBLE MANAGED BLOCK - ALIYUN NTP"
   become: true
